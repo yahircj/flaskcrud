@@ -1,38 +1,27 @@
-version: '3'
+
 services:
   mysql:
     image: mysql:latest
-    container_name: mysql_container
     environment:
-      MYSQL_ROOT_PASSWORD: 'root'  # Contraseña para el usuario root
-      MYSQL_DATABASE: 'db'         # Nombre de la base de datos que se creará al iniciar
-      MYSQL_USER: 'user'           # Usuario adicional (opcional, pero recomendado)
-      MYSQL_PASSWORD: 'password'   # Contraseña del usuario adicional (opcional)
+      MYSQL_ROOT_PASSWORD: 'faztpassword'
+      MYSQL_DATABASE: 'flaskcrud'
     volumes:
-      - mysql_data:/var/lib/mysql  # Volumen para persistir datos de MySQL
       - ./sql/db.sql:/docker-entrypoint-initdb.d/db.sql
     ports:
-      - "3306:3306"  # Puerto expuesto (3606 no es el puerto estándar de MySQL)
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 5
+      - "3306:3306"
 
   pythonapp:
-    build: .  # Construye la imagen desde el Dockerfile en el directorio actual
-    container_name: flask_app
+    build: .
     depends_on:
-      mysql:
-        condition: service_healthy  # Espera a que MySQL esté saludable
+      - mysql
     ports:
-      - "4000:5000"  # Expone el puerto 5000 del contenedor como 4000 en el host
+      - "8080:8080"
     volumes:
-      - ./app:/app  # Monta la carpeta app en /app dentro del contenedor
+      - ./app:/app
     environment:
-      FLASK_ENV: development  # Entorno de Flask
-      DATABASE_URL: mysql+pymysql://root:root@mysql:3306/db  # URL de conexión a la base de datos
-    links:
-      - mysql  # Asegura que el contenedor de Flask pueda comunicarse con MySQL
-
-volumes:
-  mysql_data:  # Volumen para persistir datos de MySQL
+      FLASK_ENV: development
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: faztpassword
+      MYSQL_DB: flaskcrud
+      MYSQL_PORT: 3306
